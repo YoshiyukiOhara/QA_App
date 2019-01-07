@@ -34,23 +34,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     private Toolbar mToolbar;
     private int mGenre = 0;
-    private FirebaseUser user = null;
 
     private DatabaseReference mDatabaseReference;
     private DatabaseReference mGenreRef;
     private ListView mListView;
     private ArrayList<Question> mQuestionArrayList;
-    //private ArrayList<Question> mFavoriteArrayList;
     private QuestionsListAdapter mAdapter;
-
-    private DatabaseReference mUesrRef;
-    private DatabaseReference mContentRef;
-
-    private ArrayList<String> listA;
-    private ArrayList<String> listB;
-    private ArrayList<String> listC;
-
-    FloatingActionButton fab;
 
     private ChildEventListener mEventListener = new ChildEventListener() {
         @Override
@@ -81,55 +70,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 }
             }
 
-            //Log.d("DEBUG_TEST", String.valueOf(mGenre));
-            //Log.d("DEBUG_TEST_k", String.valueOf(dataSnapshot.getKey()));
             Question question = new Question(title, body, name, uid, dataSnapshot.getKey(), mGenre, bytes, answerArrayList);
-            //Log.d("DEBUG_TEST", String.valueOf(dataSnapshot.getKey()));
-            if (mGenre == 5) {
-                for (String a : listA) {
-                    Log.d("DEBUG_TEST_a", String.valueOf(a));
-                    Log.d("DEBUG_TEST_k", String.valueOf(dataSnapshot.getKey()));
-
-                    if (dataSnapshot.getKey().equals(a)) {
-
-                        mQuestionArrayList.add(question);
-                        Log.d("DEBUG_TEST", "mQuestionArrayListに追加成功");
-                    } else {
-                        Log.d("DEBUG_TEST", "mQuestionArrayListに追加失敗");
-                    }
-                }
-            } else {
-                Log.d("DEBUG_TEST", "5以外");
-                mQuestionArrayList.add(question);
-            }
-            //Log.d("DEBUG_TEST_QList", String.valueOf(mQuestionArrayList));
-
-
-            /*
             mQuestionArrayList.add(question);
-            //Log.d("DEBUG_TEST", "mQuestionArrayList:" + String.valueOf(mQuestionArrayList));
-            for (int i = 0 ; i < mQuestionArrayList.size() ; i++){
-                Question country = mQuestionArrayList.get(i);
-                Log.d("DEBUG_TEST", "mQuestionArrayList:" + String.valueOf(country));
-            }
-
-            Log.d("DEBUG_TEST", String.valueOf(dataSnapshot.getKey()));
-            if (mGenre == 5) {
-                for (String a: listA) {
-                    if (!(dataSnapshot.getKey().equals(a))) {
-
-                        int index = mQuestionArrayList.indexOf(a);
-                        Log.d("DEBUG_TEST", String.valueOf(index));
-                        //mQuestionArrayList.remove(index);
-                    }
-                }
-            }*/
-
-            //Log.d("DEBUG_TEST_A_V", String.valueOf(dataSnapshot.getValue()));
-            //Log.d("DEBUG_TEST_A_K", String.valueOf(dataSnapshot.getKey()));
-            //Log.d("DEBUG_TEST_A_QList", String.valueOf(mQuestionArrayList));
             mAdapter.notifyDataSetChanged();
-            Log.d("DEBUG_TEST", "onChildAdded");
         }
 
         @Override
@@ -151,11 +94,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                             question.getAnswers().add(answer);
                         }
                     }
-                    //Log.d("DEBUG_TEST_C", String.valueOf(dataSnapshot.getValue()));
-                    //Log.d("DEBUG_TEST_C_QList", String.valueOf(mQuestionArrayList));
 
                     mAdapter.notifyDataSetChanged();
-                    Log.d("DEBUG_TEST", "onChildChanged");
                 }
             }
         }
@@ -183,7 +123,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         mToolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(mToolbar);
 
-        fab = (FloatingActionButton) findViewById(R.id.fab);
+        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -231,18 +171,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 // Questionのインスタンスを渡して質問詳細画面を起動する
-                //if (mGenre != 5) {
-                    Intent intent = new Intent(getApplicationContext(), QuestionDetailActivity.class);
-                    intent.putExtra("question", mQuestionArrayList.get(position));
-                    startActivity(intent);
-                //}
+                Intent intent = new Intent(getApplicationContext(), QuestionDetailActivity.class);
+                intent.putExtra("question", mQuestionArrayList.get(position));
+                startActivity(intent);
             }
         });
-
-        listA = new ArrayList<String>();
-        listB = new ArrayList<String>();
-        listC = new ArrayList<String>();
-        //mFavoriteArrayList = new ArrayList<Question>();
     }
 
     @Override
@@ -266,9 +199,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         } else {
             navFavorite.setVisible(true);
         }
-
-
-
     }
 
     @Override
@@ -296,12 +226,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
-
-        user = FirebaseAuth.getInstance().getCurrentUser();
-
         int id = item.getItemId();
-
-        fab.show();
 
         if (id == R.id.nav_hobby) {
             mToolbar.setTitle("趣味");
@@ -316,84 +241,24 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             mToolbar.setTitle("コンピューター");
             mGenre = 4;
         } else if (id == R.id.nav_favorite) {
-            mToolbar.setTitle("お気に入り");
-            mGenre = 5;
-            fab.hide();
+            Intent intent = new Intent(getApplicationContext(), FavoriteActivity.class);
+            startActivity(intent);
         }
-
-
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
 
-        //Log.d("DEBUG_TEST", String.valueOf(mQuestionArrayList));
-
         // 質問のリストをクリアしてから再度Adapterにセットし、AdapterをListViewにセットし直す
         mQuestionArrayList.clear();
         mAdapter.setQuestionArrayList(mQuestionArrayList);
-
-        //mFavoriteArrayList.clear();
-        //mAdapter.setQuestionArrayList(mFavoriteArrayList);
-
         mListView.setAdapter(mAdapter);
-
 
         // 選択したジャンルにリスナーを登録する
         if (mGenreRef != null) {
             mGenreRef.removeEventListener(mEventListener);
         }
         mGenreRef = mDatabaseReference.child(Const.ContentsPATH).child(String.valueOf(mGenre));
-
-
-
-
-
-        Log.d("DEBUG_TEST_QList", String.valueOf(mQuestionArrayList));
-
-        if (mGenre == 5) {
-            listA.clear();
-
-            mUesrRef = mDatabaseReference.child(Const.FavoritesPATH).child(user.getUid());
-            //Log.d("DEBUG_TEST_A", String.valueOf(mUesrRef));
-
-            mUesrRef.addListenerForSingleValueEvent(new ValueEventListener() {
-                @Override
-                public void onDataChange(DataSnapshot snapshot) {
-                    for (DataSnapshot postSnapshot: snapshot.getChildren()) {
-                        listA.add(postSnapshot.getKey());
-                        Log.d("DEBUG_TEST_listA", String.valueOf(listA));
-                    }
-
-                    for (int i = 1; i < 5; i++) {
-                        //mGenre = i;
-                        mGenreRef = mDatabaseReference.child(Const.ContentsPATH).child(String.valueOf(i));
-                        Log.d("DEBUG_TEST", String.valueOf(mGenreRef));
-                        mGenreRef.addChildEventListener(mEventListener);
-                    }
-                }
-                @Override
-                public void onCancelled(DatabaseError firebaseError) {
-                }
-            });
-
-
-        } else {
-            mGenreRef.addChildEventListener(mEventListener);
-        }
-        /*
-        for (int i = 1; i < 5; i++) {
-            mGenre = i;
-            DatabaseReference mContentRef = mDatabaseReference.child(Const.ContentsPATH).child(String.valueOf(mGenre));
-            Log.d("DEBUG_TEST", String.valueOf(mUesrRef));
-            mContentRef.addChildEventListener(mEventListener);
-        }
-        //DatabaseReference mContentRef = mDatabaseReference.child(Const.ContentsPATH).child(String.valueOf(mGenre));
-        //mUesrRef = mDatabaseReference.child(Const.FavoritesPATH).child(user.getUid());
-        */
-        //Log.d("DEBUG_TEST", String.valueOf(mGenreRef));
-
-        Log.d("DEBUG_TEST", String.valueOf(mEventListener));
-        //mGenreRef.addChildEventListener(mEventListener);
+        mGenreRef.addChildEventListener(mEventListener);
 
         return true;
     }
